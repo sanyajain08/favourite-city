@@ -11,7 +11,8 @@ import UIKit
 class MasterViewController: UITableViewController {
 
     var detailViewController: DetailViewController? = nil
-    var objects = [Any]()
+    var cities = [City]()
+    let defaults = UserDefaults.standard
 
 
     override func viewDidLoad() {
@@ -25,11 +26,21 @@ class MasterViewController: UITableViewController {
             let controllers = split.viewControllers
             detailViewController = (controllers[controllers.count-1] as! UINavigationController).topViewController as? DetailViewController
         }
+        
+        if let savedData = defaults.object(forKey: "data") as? Data {
+            if let decoded = try? JSONDecoder().decode([City].self, from: savedData) {
+                cities = decoded
+                
+            }
+        }
+        
     }
 
     override func viewWillAppear(_ animated: Bool) {
         clearsSelectionOnViewWillAppear = splitViewController!.isCollapsed
         super.viewWillAppear(animated)
+        tableView.reloadData()
+        self.saveData()
     }
 
     override func didReceiveMemoryWarning() {
@@ -51,7 +62,7 @@ class MasterViewController: UITableViewController {
             textfield.placeholder = "Population"
             textfield.keyboardType = .numberPad
         }
-        let cancelAction = UIAlertController (title: "Cancel", style: .cancel, handler:. nil)
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
         alert.addAction(cancelAction)
         let insertAction = UIAlertAction(title: "Add", style: .default) { (action) in
             let cityTextField = alert.textFields![0] as UITextField
@@ -61,15 +72,13 @@ class MasterViewController: UITableViewController {
                 print ( "missing \(cityTextField.text!) image")
                 return}
             if let population = Int(populationtextfield.text!){
-                let city = city(name: cityTextField.text!,
+                let city = City(name: cityTextField.text!,
                                 state: stateTextField.text!,
                                 population: population,
-                                image: UIImagePNGRepresentation(image)!
-                    self.cities.append
-                    (city)
-                    self.tableView.reload()
-                    
-                                )
+                                image: UIImagePNGRepresentation(image)! )
+                    self.cities.append(city)
+                    self.tableView.reloadData()
+                self.saveData()
             }
             
         }
@@ -82,7 +91,7 @@ class MasterViewController: UITableViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showDetail" {
             if let indexPath = tableView.indexPathForSelectedRow {
-                let object = objects[indexPath.row] as! NSDate
+                let object = cities[indexPath.row]
                 let controller = (segue.destination as! UINavigationController).topViewController as! DetailViewController
                 controller.detailItem = object
                 controller.navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
@@ -122,12 +131,15 @@ class MasterViewController: UITableViewController {
             // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
         }
     }
-    override func (_tableView: UITableVire, moveRowAt sourceIndexaPath: Index Path, to destinationIndexPath: IndexPath) {
-    let objectToMove = cities.remove(at: sourceIndexPath.row)
-    cities.insert
-    (objctToMove, at: destinationIndexPath.row)
+    override func tableView(_ tableView: UITableView, moveRowAt sourceIndexaPath: IndexPath, to destinationIndexPath: IndexPath) {
+        let objectToMove = cities.remove(at: sourceIndexaPath.row)
+        cities.insert(objectToMove, at: destinationIndexPath.row)
+        self.saveData()
     }
 
-
+    func saveData() {
+        if let encoded = try? JSONEncoder().encode(cities) {
+            defaults.set(encoded, forKey: "data")
+        }
+    }
 }
-

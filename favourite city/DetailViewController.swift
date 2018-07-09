@@ -41,23 +41,24 @@ class DetailViewController: UIViewController {
     func configureView () {
         // update the user interface for the deyail item
         if let city = self.detailItem {
-            if cityTextField ! = nil {
+            if cityTextField  != nil {
                 cityTextField.text = city.name
                 stateTextField.text = city.state
                 populationtextfield.text = String( city.population)
-                imageview.image = UIImage(data: city.image)
+                imageview.image =  UIImage(data: city.image)
             }
         }
     }
     
 
-    overide func viewDidDisappear(_ animated: Bool) {
+    override func viewDidDisappear(_ animated: Bool) {
         if let city = self.detailItem {
         city.name = cityTextField.text!
-            city.state = StatetextField.text!
+            city.state = stateTextField.text!
             city.population = Int(populationtextfield.text!)!
     }
 
 }
 
 
+}
